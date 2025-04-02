@@ -4,10 +4,10 @@ import searchForMatches from './searchForMatches.js';
 import SearchBar from './SearchBar.jsx';
 import CopyrightInfo from './CopyrightInfo.jsx';
 import SkeletonLoaderParagraph from './SkeletonLoaderParagraph/index.jsx';
-import type { Subentry } from '../../types/Subentry.js';
+import type { Entry } from '../../types/Entry.js';
 
 export function Home() {
-  const [results, setResults] = useState<Subentry[]>([]);
+  const [results, setResults] = useState<Entry[]>([]);
 
   // TODO: create useAsyncState hook
   const [loading, setLoading] = useState(false);
@@ -38,10 +38,26 @@ export function Home() {
           <SkeletonLoaderParagraph />
         ) : (
           <view className="flex flex-col gap-2">
-            {results.map(({ definition, example }, index) => (
-              <view item-key={`result-${index}`} key={`result-${index}`}>
-                {definition && <text>{definition}</text>}
-                {example && <text className="px-2 italic">{example}</text>}
+            {results.map(({ canonicalForm, senses }, index) => (
+              <view
+                item-key={`sense-${index}`}
+                key={`sense-${index}`}
+                className="flex flex-col gap-2"
+              >
+                <text className="font-bold text-blue-600">{canonicalForm}</text>
+                <view className="flex flex-col gap-2 border-l border-slate-200 px-2">
+                  {senses.map(({ definition, example }) => (
+                    <view
+                      item-key={`definition-${index}`}
+                      key={`definition-${index}`}
+                    >
+                      {definition && <text>{definition}</text>}
+                      {example && (
+                        <text className="px-2 italic">{example}</text>
+                      )}
+                    </view>
+                  ))}
+                </view>
               </view>
             ))}
           </view>

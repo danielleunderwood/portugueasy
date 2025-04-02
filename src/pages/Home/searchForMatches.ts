@@ -1,6 +1,7 @@
 import { XMLParser } from 'fast-xml-parser';
-import type { EntryDto } from '../../types/EntryDto.js';
+import type { EntryDto, SenseDto } from '../../types/EntryDto.js';
 import type { Subentry } from '../../types/Subentry.js';
+import type { Entry } from '../../types/Entry.js';
 
 const getExactMatchesFor = async (searchTerm: string) => {
   const response = await fetch(
@@ -20,26 +21,38 @@ const getSubentriesFromDef = (def: string) => {
   });
 };
 
-const searchForMatches = async (searchTerm: string): Promise<Subentry[]> => {
+const getSubentriesFromSense = (sense: SenseDto | SenseDto[]) => {
+  let defs: string[];
+
+  if (Array.isArray(sense)) {
+    defs = sense.map(({ def }) => def);
+  } else {
+    defs = [sense.def];
+  }
+
+  return defs.flatMap((def) => getSubentriesFromDef(def));
+};
+
+const getEntry = (entryDto: EntryDto): Entry => {
+  const { form, sense } = entryDto.entry;
+
+  const canonicalForm = form.orth;
+
+  return { canonicalForm, senses: getSubentriesFromSense(sense) };
+};
+
+const searchForMatches = async (searchTerm: string): Promise<Entry[]> => {
   const lowercase = searchTerm.toLowerCase();
 
   const results = await getExactMatchesFor(lowercase);
 
   const parser = new XMLParser();
 
-  return results
-    .flatMap((result) => {
-      const parsed: EntryDto = parser.parse(result.xml);
+  return results.flatMap((result) => {
+    const parsed: EntryDto = parser.parse(result.xml);
 
-      const { sense } = parsed.entry;
-
-      if (Array.isArray(sense)) {
-        return sense.map(({ def }) => def);
-      }
-
-      return sense.def;
-    })
-    .flatMap((def) => getSubentriesFromDef(def));
+    return getEntry(parsed);
+  });
 };
 
 export default searchForMatches;
