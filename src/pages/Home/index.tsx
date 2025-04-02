@@ -3,11 +3,11 @@ import { useState } from '@lynx-js/react';
 import searchForMatches from './searchForMatches.js';
 import SearchBar from './SearchBar.jsx';
 import CopyrightInfo from './CopyrightInfo.jsx';
-import Link from '../../components/Link.jsx';
 import SkeletonLoaderParagraph from './SkeletonLoaderParagraph/index.jsx';
+import type { Subentry } from '../../types/Subentry.js';
 
 export function Home() {
-  const [results, setResults] = useState<string[]>([]);
+  const [results, setResults] = useState<Subentry[]>([]);
 
   // TODO: create useAsyncState hook
   const [loading, setLoading] = useState(false);
@@ -30,8 +30,22 @@ export function Home() {
     <view className="relative flex flex-col items-center h-screen p-2 pt-8 gap-4">
       <SearchBar onSearch={onSearch} />
 
-      <scroll-view className="w-full p-2 flex-grow">
-        {loading ? <SkeletonLoaderParagraph /> : <text>{results}</text>}
+      <scroll-view
+        className="w-full p-2 flex-grow"
+        scroll-orientation="vertical"
+      >
+        {loading ? (
+          <SkeletonLoaderParagraph />
+        ) : (
+          <view className="flex flex-col gap-2">
+            {results.map(({ definition, example }, index) => (
+              <view item-key={`result-${index}`} key={`result-${index}`}>
+                {definition && <text>{definition}</text>}
+                {example && <text className="px-2 italic">{example}</text>}
+              </view>
+            ))}
+          </view>
+        )}
       </scroll-view>
       <view className="flex flex-col w-full gap-2 flex-grow-0">
         <CopyrightInfo
