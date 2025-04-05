@@ -1,7 +1,18 @@
 import { XMLParser } from 'fast-xml-parser';
 import type { EntryDto, SenseDto } from '../../types/EntryDto.js';
-import type { Subentry } from '../../types/Subentry.js';
 import type { Entry } from '../../types/Entry.js';
+
+const getPossibleForms = (searchTerm: string) => {
+  const lowercase = searchTerm.toLowerCase();
+
+  const possibleForms = [lowercase];
+
+  if (lowercase[lowercase.length - 1] === 'a') {
+    possibleForms.push(lowercase.substring(0, lowercase.length - 1) + 'o');
+  }
+
+  return possibleForms;
+};
 
 const getExactMatchesFor = async (searchTerm: string) => {
   const response = await fetch(
@@ -41,18 +52,26 @@ const getEntry = (entryDto: EntryDto): Entry => {
   return { canonicalForm, senses: getSubentriesFromSense(sense) };
 };
 
-const searchForMatches = async (searchTerm: string): Promise<Entry[]> => {
-  const lowercase = searchTerm.toLowerCase();
-
-  const results = await getExactMatchesFor(lowercase);
-
+const getParsedResults = async (form: string) => {
   const parser = new XMLParser();
 
-  return results.flatMap((result) => {
-    const parsed: EntryDto = parser.parse(result.xml);
+  const results = await getExactMatchesFor(form);
+
+  return results.map(({ xml }) => {
+    const parsed: EntryDto = parser.parse(xml);
 
     return getEntry(parsed);
   });
+};
+
+const searchForMatches = async (searchTerm: string): Promise<Entry[]> => {
+  const possibleForms = getPossibleForms(searchTerm);
+
+  const promises = await Promise.all(
+    possibleForms.map((form) => getParsedResults(form)),
+  );
+
+  return promises.flatMap((o) => o);
 };
 
 export default searchForMatches;

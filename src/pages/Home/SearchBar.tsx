@@ -16,7 +16,7 @@ function SearchBar({ onSearch }: SearchBarProps) {
   };
 
   return (
-    <view className="w-full flex">
+    <view className="w-full flex shrink-0">
       <Input
         value={searchTerm}
         placeholder="Type here"

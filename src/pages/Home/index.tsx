@@ -63,7 +63,7 @@ export function Home() {
           </view>
         )}
       </scroll-view>
-      <view className="flex flex-col w-full gap-2 flex-grow-0">
+      <view className="flex flex-col w-full gap-2 shrink-0">
         <CopyrightInfo
           description="Results supplied by Dicionário Aberto"
           link="https://dicionario-aberto.net"
